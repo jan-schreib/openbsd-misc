@@ -1,0 +1,83 @@
+diff --git a/src/decompress.c b/src/decompress.c
+index 90722f7..7dcf1dc 100644
+--- a/src/decompress.c
++++ b/src/decompress.c
+@@ -24,7 +24,7 @@ const uint8_t LZMA_HEADER_SOMETIMES[3] = { 0x5D, 0x00, 0x00 };
+  *    Not copyrighted -- provided to the public domain
+  *    Version 1.4  11 December 2005  Mark Adler 
+  */
+-static void *decompress_zlib(const void *buf, const int buf_len,
++static void *decompress_zlib(void *buf, const int buf_len,
+                              const char *dir_full_path, int *new_buf_len) {
+     int ret = 0;
+     unsigned char *result = NULL;
+@@ -188,7 +188,7 @@ error_out:
+ 
+ 
+ /* This function is very hot. It's called on every file when zip is enabled. */
+-void *decompress(const ag_compression_type zip_type, const void *buf, const int buf_len,
++void *decompress(const ag_compression_type zip_type, void *buf, const int buf_len,
+                  const char *dir_full_path, int *new_buf_len) {
+ 
+     switch (zip_type) {
+diff --git a/src/decompress.h b/src/decompress.h
+index a26c42f..3551676 100644
+--- a/src/decompress.h
++++ b/src/decompress.h
+@@ -15,5 +15,5 @@ typedef enum {
+ 
+ ag_compression_type is_zipped(const void *buf, const int buf_len);
+ 
+-void *decompress(const ag_compression_type zip_type, const void *buf, const int buf_len, const char *dir_full_path, int *new_buf_len);
++void *decompress(const ag_compression_type zip_type, void *buf, const int buf_len, const char *dir_full_path, int *new_buf_len);
+ #endif
+diff --git a/src/lang.c b/src/lang.c
+index 73265c5..3789d19 100644
+--- a/src/lang.c
++++ b/src/lang.c
+@@ -84,7 +84,7 @@ char *make_lang_regex(const char **extensions) {
+     int subsequent = 0;
+     const char **extension;
+ 
+-    strcpy(regex, "\\.(");
++    strlcpy(regex, "\\.(", regex_capacity);
+ 
+     for (extension = extensions; *extension; ++extension) {
+         int extension_length = strlen(*extension);
+@@ -97,7 +97,7 @@ char *make_lang_regex(const char **extensions) {
+         } else {
+             subsequent = 1;
+         }
+-        strcpy(regex + regex_length, *extension);
++        strlcpy(regex + regex_length, *extension, regex_capacity + regex_length);
+         regex_length += extension_length;
+     }
+ 
+diff --git a/src/search.c b/src/search.c
+index 9df6e23..e9b9173 100644
+--- a/src/search.c
++++ b/src/search.c
+@@ -181,7 +181,7 @@ void search_file(const char *file_full_path) {
+     char *buf = NULL;
+     struct stat statbuf;
+     int rv = 0;
+-    FILE *pipe = NULL;
++    FILE *spipe = NULL;
+ 
+     fd = open(file_full_path, O_RDONLY);
+     if (fd < 0) {
+@@ -207,10 +207,10 @@ void search_file(const char *file_full_path) {
+     }
+ 
+     if (statbuf.st_mode & S_IFIFO) {
+-        log_debug("%s is a named pipe. stream searching", file_full_path);
+-        pipe = fdopen(fd, "r");
+-        search_stream(pipe, file_full_path);
+-        fclose(pipe);
++        log_debug("%s is a named spipe. stream searching", file_full_path);
++        spipe = fdopen(fd, "r");
++        search_stream(spipe, file_full_path);
++        fclose(spipe);
+         goto cleanup;
+     }
+ 
