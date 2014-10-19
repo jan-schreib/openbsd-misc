@@ -13,7 +13,7 @@ done
 
 
 if [ $# -ne 1 ]; then
-	echo "Usage: $0 <interface>"
+	echo "Usage: wifiscan <interface>"
 	exit 1
 fi
 
