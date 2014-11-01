@@ -1,5 +1,11 @@
 #!/bin/sh
 
+#check for root user
+if [ "$(id -u)" != "0" ]; then
+	echo "This script must be run as root" 1>&2
+	exit 1
+fi
+
 # update userland
 
 rm -rf /usr/obj/*
