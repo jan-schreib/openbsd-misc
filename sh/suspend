@@ -1,0 +1,8 @@
+#!/bin/ksh
+
+#put in /etc/apm/
+
+sudo -u <user> /bin/ksh -c "HOME=/home/<user>;
+/usr/X11R6/bin/xlock \
+-display :0.0" &
+
